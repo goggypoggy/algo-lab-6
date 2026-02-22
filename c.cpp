@@ -17,89 +17,31 @@ struct Graph {
     std::vector<COLOR> color;
 };
 
-std::vector<int> v;
-std::vector<int> nb_mem;
-
-void Output(Graph& G) {
-    for (int i = 0; i < G.V; ++i) {
-        std::cout << i + 1 << ' ';
-    }
-    std::cout << std::endl;
-    for (int i = 0; i < G.V; ++i) {
-        char letter = '@';
-        switch (G.color[i]) {
-            case COLOR::WHITE:
-                letter = 'W';
-            break;
-            case COLOR::GRAY:
-                letter = 'G';
-            break;
-            case COLOR::BLACK:
-                letter = 'B';
-            break;
-        }
-
-        std::cout << letter << ' ';
-    }
-    std::cout << std::endl;
-}
-
-bool DFS_Launch(Graph& G, int start_node) {
-    for (int i = 0; i < G.V; ++i) {
-        nb_mem[i] = 0;
-    }
-    
-    v.push_back(start_node);
-    G.color[start_node] = COLOR::GRAY;
-
-    while (v.size() > 0) {
-        int top = v[v.size() - 1];
-        bool added_new = false;
-        
-        //std::cout << top + 1 << std::endl;
-        //Output(G);
-
-        while (nb_mem[top] < G.neighbours[top].size()) {
-            int new_neighbor = G.neighbours[top][nb_mem[top]];
-            
-            if (G.color[new_neighbor] == COLOR::WHITE) {
-                v.push_back(new_neighbor);
-                G.color[new_neighbor] = COLOR::GRAY;
-                added_new = true;
-                break;   
-            } else if (G.color[new_neighbor] == COLOR::GRAY) {
-                if (v.size() >= 2) {
-                    int parent = v[v.size() - 2];
-                    if (new_neighbor != parent) {
-                        return true;
-                    }
-                }
+bool Visit(Graph& G, int node, int parent) {
+    G.color[node] = COLOR::GRAY;
+    for (int neighbor : G.neighbours[node]) {
+        if (G.color[neighbor] == COLOR::WHITE) {
+            Visit(G, neighbor, node);
+        } else if (G.color[neighbor] == COLOR::GRAY) {
+            if (neighbor != parent) {
+                return true;
             }
-
-            ++nb_mem[top];
-        }
-
-        if (!added_new) {
-            G.color[top] = COLOR::BLACK;
-            v.pop_back();
         }
     }
+    G.color[node] = COLOR::BLACK;
 
     return false;
 }
 
 bool DFS_Cycles(Graph& G) {
-    v.reserve(G.V);
-    nb_mem.resize(G.V);
-
     for (int i = 0; i < G.V; ++i) {
         if (G.color[i] == COLOR::WHITE) {
-            if (DFS_Launch(G, i)) {
+            if (Visit(G, i, -1)) {
                 return true;
             }
         }
     }
-
+    
     return false;
 }
 
