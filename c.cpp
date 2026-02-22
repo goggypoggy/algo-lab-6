@@ -15,34 +15,30 @@ struct Graph {
 
     std::vector<std::vector<int>> neighbours;
     std::vector<COLOR> color;
+
+    bool has_cycle = false;
 };
 
-bool Visit(Graph& G, int node, int parent) {
+void Visit(Graph& G, int node, int parent) {
     G.color[node] = COLOR::GRAY;
     for (int neighbor : G.neighbours[node]) {
         if (G.color[neighbor] == COLOR::WHITE) {
             Visit(G, neighbor, node);
         } else if (G.color[neighbor] == COLOR::GRAY) {
             if (neighbor != parent) {
-                return true;
+                G.has_cycle = true;
             }
         }
     }
     G.color[node] = COLOR::BLACK;
-
-    return false;
 }
 
-bool DFS_Cycles(Graph& G) {
+void DFS_Cycles(Graph& G) {
     for (int i = 0; i < G.V; ++i) {
         if (G.color[i] == COLOR::WHITE) {
-            if (Visit(G, i, -1)) {
-                return true;
-            }
+            Visit(G, i, -1);
         }
     }
-    
-    return false;
 }
 
 int main(int, char**) {
@@ -68,7 +64,9 @@ int main(int, char**) {
         G.neighbours[to - 1].push_back(from - 1);
     }
 
-    std::cout << (DFS_Cycles(G) ? "YES" : "NO");
+    DFS_Cycles(G);
+
+    std::cout << (G.has_cycle ? "YES" : "NO");
 
     return 0;
 }
